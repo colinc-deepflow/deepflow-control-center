@@ -5,7 +5,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { StatsCards } from "@/components/StatsCards";
 import { FilterButtons } from "@/components/FilterButtons";
 import { ProjectCard } from "@/components/ProjectCard";
-import { ProjectDetailModal } from "@/components/ProjectDetailModal";
+import { ProjectDetailView } from "@/components/ProjectDetailView";
 import { Button } from "@/components/ui/button";
 import {
   loadConfig,
@@ -251,7 +251,7 @@ const Index = () => {
         autoRefresh={autoRefresh}
       />
 
-      <ProjectDetailModal
+      <ProjectDetailView
         project={selectedProject}
         open={!!selectedProject}
         onOpenChange={(open) => !open && setSelectedProject(null)}

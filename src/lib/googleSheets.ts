@@ -8,6 +8,20 @@ export interface Project {
   revenueValue: number;
   phase: string;
   notes?: string;
+  clientPhone?: string;
+  industry?: string;
+  teamSize?: string;
+  challenges?: string;
+  proposalHtml?: string;
+  buildGuideMarkdown?: string;
+  workflowJson?: string;
+  buildProgress?: {
+    timeline?: string[];
+    tasks?: { title: string; status: 'todo' | 'in-progress' | 'done' }[];
+    hoursLogged?: number;
+    files?: string[];
+    comments?: string[];
+  };
 }
 
 export interface GoogleSheetsConfig {
@@ -33,7 +47,7 @@ export const clearConfig = () => {
 
 export const fetchProjects = async (config: GoogleSheetsConfig): Promise<Project[]> => {
   const { apiKey, spreadsheetId, sheetName } = config;
-  const range = `${sheetName}!A:H`;
+  const range = `${sheetName}!A:Z`;
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
 
   try {
@@ -56,6 +70,13 @@ export const fetchProjects = async (config: GoogleSheetsConfig): Promise<Project
       revenueValue: parseFloat(row[6]) || 0,
       phase: row[7] || '',
       notes: row[8] || '',
+      clientPhone: row[9] || '',
+      industry: row[10] || '',
+      teamSize: row[11] || '',
+      challenges: row[12] || '',
+      proposalHtml: row[13] || '',
+      buildGuideMarkdown: row[14] || '',
+      workflowJson: row[15] || '',
     }));
   } catch (error) {
     console.error('Error fetching projects:', error);
