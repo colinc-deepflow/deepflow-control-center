@@ -83,6 +83,7 @@ export const ProjectDetailView = ({
 }: ProjectDetailViewProps) => {
   const [notes, setNotes] = useState(project?.notes || '');
   const [activeTab, setActiveTab] = useState("overview");
+  const [expandedChallenges, setExpandedChallenges] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -187,153 +188,179 @@ export const ProjectDetailView = ({
 
           <div className="flex-1 overflow-y-auto">
             {/* TAB 1: OVERVIEW */}
-            <TabsContent value="overview" className="p-6 space-y-6 m-0">
+            <TabsContent value="overview" className="p-6 space-y-4 m-0">
+              {/* Contact Information Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Business Summary</CardTitle>
+                  <CardTitle className="text-lg text-primary">Contact Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-start gap-3">
-                    <Building2 className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Client Name</p>
-                      <p className="text-lg font-semibold">{project.clientName}</p>
+                <CardContent className="space-y-4">
+                  {project.contactName && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">👤 Contact Person</p>
+                      <p className="text-base font-semibold">{project.contactName}</p>
                     </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{project.clientEmail}</p>
-                    </div>
-                  </div>
-
-                  {project.clientPhone && (
-                    <>
-                      <Separator />
-                      <div className="flex items-start gap-3">
-                        <Phone className="w-5 h-5 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Phone</p>
-                          <p className="font-medium">{project.clientPhone}</p>
-                        </div>
-                      </div>
-                    </>
                   )}
-
-                  <Separator />
-
-                  <div className="flex items-start gap-3">
-                    <ClipboardList className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-2">Status</p>
-                      <Select
-                        value={project.status}
-                        onValueChange={(value) => onStatusChange(project.id, value as Project['status'])}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-start gap-3">
-                    <TrendingUp className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-2">Lead Score</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold">{project.leadScore}/100</span>
-                        </div>
-                        <Progress value={project.leadScore} className="h-2" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="w-5 h-5 text-muted-foreground mt-1" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Revenue Value</p>
-                      <p className="text-3xl font-bold text-primary">{formatCurrency(project.revenueValue)}</p>
-                    </div>
-                  </div>
-
-                  {project.phase && (
-                    <>
-                      <Separator />
-                      <div className="flex items-start gap-3">
-                        <Calendar className="w-5 h-5 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Current Phase</p>
-                          <p className="font-medium">{project.phase}</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {(project.industry || project.teamSize || project.challenges) && (
-                    <>
-                      <Separator />
-                      <div className="space-y-4">
-                        {project.industry && (
-                          <div className="flex items-start gap-3">
-                            <Building2 className="w-4 h-4 text-muted-foreground mt-1" />
-                            <div className="flex-1">
-                              <p className="text-sm text-muted-foreground">Industry</p>
-                              <p className="text-sm">{project.industry}</p>
-                            </div>
-                          </div>
-                        )}
-                        {project.teamSize && (
-                          <div className="flex items-start gap-3">
-                            <Users className="w-4 h-4 text-muted-foreground mt-1" />
-                            <div className="flex-1">
-                              <p className="text-sm text-muted-foreground">Team Size</p>
-                              <p className="text-sm">{project.teamSize}</p>
-                            </div>
-                          </div>
-                        )}
-                        {project.challenges && (
-                          <div className="flex items-start gap-3">
-                            <AlertCircle className="w-4 h-4 text-muted-foreground mt-1" />
-                            <div className="flex-1">
-                              <p className="text-sm text-muted-foreground">Challenges</p>
-                              <p className="text-sm">{project.challenges}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  <Separator />
-
+                  
                   <div>
-                    <Label htmlFor="notes" className="text-sm text-muted-foreground mb-2 block">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Add notes about this project..."
-                      rows={4}
-                      className="resize-none"
-                    />
+                    <p className="text-xs text-muted-foreground font-medium mb-1">🏢 Business Name</p>
+                    <p className="text-base font-semibold">{project.clientName}</p>
                   </div>
+                  
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">📧 Email</p>
+                    <a 
+                      href={`mailto:${project.clientEmail}`}
+                      className="text-base text-primary hover:underline font-medium"
+                    >
+                      {project.clientEmail}
+                    </a>
+                  </div>
+                  
+                  {project.phoneNumber && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">📱 Phone</p>
+                      <a 
+                        href={`tel:${project.phoneNumber}`}
+                        className="text-base text-primary hover:underline font-medium"
+                      >
+                        {project.phoneNumber}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {project.industry && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">🏭 Industry</p>
+                      <p className="text-base">{project.industry}</p>
+                    </div>
+                  )}
+                  
+                  {project.teamSize && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">👥 Team Size</p>
+                      <p className="text-base">{project.teamSize}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Project Status Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-primary">Project Status</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-2">📊 Status</p>
+                    <Select
+                      value={project.status}
+                      onValueChange={(value) => onStatusChange(project.id, value as Project['status'])}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-2">⭐ Lead Score</p>
+                    <div className="flex items-center gap-3">
+                      <Progress value={project.leadScore} className="h-2 flex-1" />
+                      <span className="text-base font-semibold">{project.leadScore}/100</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">💰 Revenue Value</p>
+                    <p className="text-3xl font-bold text-accent">{formatCurrency(project.revenueValue)}</p>
+                  </div>
+                  
+                  {project.phase && (
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-1">📍 Current Phase</p>
+                      <p className="text-base">{project.phase}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Business Context Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-primary">Business Context</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {project.currentChallenges && (
+                    <div>
+                      <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        🎯 Current Challenges
+                      </p>
+                      <div className="text-sm leading-relaxed bg-muted p-3 rounded border">
+                        {expandedChallenges || project.currentChallenges.length <= 200
+                          ? project.currentChallenges
+                          : `${project.currentChallenges.substring(0, 200)}...`}
+                      </div>
+                      {project.currentChallenges.length > 200 && (
+                        <button
+                          onClick={() => setExpandedChallenges(!expandedChallenges)}
+                          className="mt-2 text-xs text-primary underline"
+                        >
+                          {expandedChallenges ? 'Show Less' : 'View Full'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  
+                  {project.currentProcess && (
+                    <div>
+                      <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        🔧 Current Process
+                      </p>
+                      <div className="text-sm leading-relaxed bg-muted p-3 rounded border">
+                        {project.currentProcess.length <= 200
+                          ? project.currentProcess
+                          : `${project.currentProcess.substring(0, 200)}...`}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {project.desiredOutcomes && (
+                    <div>
+                      <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                        ✨ Desired Outcomes
+                      </p>
+                      <div className="text-sm leading-relaxed bg-muted p-3 rounded border">
+                        {project.desiredOutcomes.length <= 200
+                          ? project.desiredOutcomes
+                          : `${project.desiredOutcomes.substring(0, 200)}...`}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Notes Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-primary">📝 Internal Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add notes about this project..."
+                    rows={5}
+                    className="resize-vertical"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">Auto-saves on blur</p>
                 </CardContent>
               </Card>
 

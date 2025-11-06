@@ -8,13 +8,17 @@ export interface Project {
   revenueValue: number;
   phase: string;
   notes?: string;
-  clientPhone?: string;
+  driveFolderLink?: string;
+  proposalHtml?: string;
+  workflowJson?: string;
+  buildGuideMarkdown?: string;
+  contactName?: string;
+  phoneNumber?: string;
   industry?: string;
   teamSize?: string;
-  challenges?: string;
-  proposalHtml?: string;
-  buildGuideMarkdown?: string;
-  workflowJson?: string;
+  currentChallenges?: string;
+  currentProcess?: string;
+  desiredOutcomes?: string;
   buildProgress?: {
     timeline?: string[];
     tasks?: { title: string; status: 'todo' | 'in-progress' | 'done' }[];
@@ -87,13 +91,17 @@ export const fetchProjects = async (config: GoogleSheetsConfig): Promise<Project
       revenueValue: parseFloat(row[6]) || 0,
       phase: row[7] || '',
       notes: row[8] || '',
-      clientPhone: row[9] || '',
-      industry: row[10] || '',
-      teamSize: row[11] || '',
-      challenges: row[12] || '',
-      proposalHtml: row[13] || '',
-      buildGuideMarkdown: row[14] || '',
-      workflowJson: row[15] || '',
+      driveFolderLink: row[9] || '',
+      proposalHtml: row[10] || '',
+      workflowJson: row[11] || '',
+      buildGuideMarkdown: row[12] || '',
+      contactName: row[13] || '',
+      phoneNumber: row[14] || '',
+      industry: row[15] || '',
+      teamSize: row[16] || '',
+      currentChallenges: row[17] || '',
+      currentProcess: row[18] || '',
+      desiredOutcomes: row[19] || '',
     }));
   } catch (error) {
     console.error('Error fetching projects:', error);
