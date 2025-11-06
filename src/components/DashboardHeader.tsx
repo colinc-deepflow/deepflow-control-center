@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Zap, Settings } from "lucide-react";
+import { Zap, Settings, Bell } from "lucide-react";
 import { formatCurrency } from "@/lib/dateUtils";
 
 interface DashboardHeaderProps {
   totalProjects: number;
   pipelineValue: number;
   newThisWeek: number;
+  hasNewProjects: boolean;
   onSettingsClick: () => void;
 }
 
@@ -13,6 +14,7 @@ export const DashboardHeader = ({
   totalProjects,
   pipelineValue,
   newThisWeek,
+  hasNewProjects,
   onSettingsClick,
 }: DashboardHeaderProps) => {
   return (
@@ -43,14 +45,22 @@ export const DashboardHeader = ({
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onSettingsClick}
-            className="rounded-xl"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasNewProjects && (
+              <div className="relative">
+                <Bell className="w-5 h-5 text-accent animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-ping" />
+              </div>
+            )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onSettingsClick}
+              className="rounded-xl"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="md:hidden grid grid-cols-3 gap-4 mt-4">

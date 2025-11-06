@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -16,20 +17,22 @@ import { ExternalLink } from "lucide-react";
 interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (config: GoogleSheetsConfig) => void;
+  onSave: (config: GoogleSheetsConfig, autoRefresh: boolean) => void;
   initialConfig?: GoogleSheetsConfig | null;
+  autoRefresh: boolean;
 }
 
-export const SettingsModal = ({ open, onOpenChange, onSave, initialConfig }: SettingsModalProps) => {
+export const SettingsModal = ({ open, onOpenChange, onSave, initialConfig, autoRefresh }: SettingsModalProps) => {
   const [apiKey, setApiKey] = useState(initialConfig?.apiKey || '');
   const [spreadsheetId, setSpreadsheetId] = useState(initialConfig?.spreadsheetId || '');
   const [sheetName, setSheetName] = useState(initialConfig?.sheetName || 'Projects');
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(autoRefresh);
 
   const handleSave = () => {
     if (!apiKey || !spreadsheetId || !sheetName) {
       return;
     }
-    onSave({ apiKey, spreadsheetId, sheetName });
+    onSave({ apiKey, spreadsheetId, sheetName }, autoRefreshEnabled);
     onOpenChange(false);
   };
 
@@ -88,6 +91,20 @@ export const SettingsModal = ({ open, onOpenChange, onSave, initialConfig }: Set
             <p className="text-xs text-muted-foreground">
               The name of the sheet tab (default: "Projects")
             </p>
+          </div>
+
+          <div className="flex items-center justify-between space-x-2 pt-4 border-t">
+            <div className="space-y-0.5">
+              <Label htmlFor="auto-refresh">Auto-refresh</Label>
+              <p className="text-xs text-muted-foreground">
+                Automatically check for new projects every 30 seconds
+              </p>
+            </div>
+            <Switch
+              id="auto-refresh"
+              checked={autoRefreshEnabled}
+              onCheckedChange={setAutoRefreshEnabled}
+            />
           </div>
         </div>
 

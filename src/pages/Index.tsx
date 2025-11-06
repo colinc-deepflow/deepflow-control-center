@@ -25,6 +25,12 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(() => {
+    const saved = localStorage.getItem('autoRefresh');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [newProjectIds, setNewProjectIds] = useState<Set<string>>(new Set());
+  const [hasNewProjects, setHasNewProjects] = useState(false);
   const { toast } = useToast();
 
   // Load config on mount
@@ -42,14 +48,26 @@ const Index = () => {
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    if (!config) return;
+    if (!config || !autoRefresh) return;
     
     const interval = setInterval(() => {
       loadProjects(true);
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [config]);
+  }, [config, autoRefresh]);
+
+  // Clear new project indicators after 10 seconds
+  useEffect(() => {
+    if (newProjectIds.size === 0) return;
+    
+    const timeout = setTimeout(() => {
+      setNewProjectIds(new Set());
+      setHasNewProjects(false);
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [newProjectIds]);
 
   const loadProjects = async (silent = false) => {
     if (!config) return;
@@ -57,6 +75,27 @@ const Index = () => {
     if (!silent) setLoading(true);
     try {
       const data = await fetchProjects(config);
+      
+      // Check for new projects
+      if (silent && projects.length > 0) {
+        const existingIds = new Set(projects.map(p => p.id));
+        const newProjects = data.filter(p => !existingIds.has(p.id));
+        
+        if (newProjects.length > 0) {
+          const newIds = new Set(newProjects.map(p => p.id));
+          setNewProjectIds(newIds);
+          setHasNewProjects(true);
+          
+          // Show toast for each new project
+          newProjects.forEach(project => {
+            toast({
+              title: "New project received",
+              description: `${project.clientName} - ${project.clientEmail}`,
+            });
+          });
+        }
+      }
+      
       setProjects(data);
       if (!silent) {
         toast({
@@ -75,9 +114,11 @@ const Index = () => {
     }
   };
 
-  const handleSaveConfig = (newConfig: GoogleSheetsConfig) => {
+  const handleSaveConfig = (newConfig: GoogleSheetsConfig, autoRefreshEnabled: boolean) => {
     saveConfig(newConfig);
     setConfig(newConfig);
+    setAutoRefresh(autoRefreshEnabled);
+    localStorage.setItem('autoRefresh', JSON.stringify(autoRefreshEnabled));
     toast({
       title: "Configuration saved",
       description: "Your Google Sheets connection is configured",
@@ -134,6 +175,7 @@ const Index = () => {
           onOpenChange={setShowSettings}
           onSave={handleSaveConfig}
           initialConfig={config}
+          autoRefresh={autoRefresh}
         />
       </>
     );
@@ -145,6 +187,7 @@ const Index = () => {
         totalProjects={projects.length}
         pipelineValue={totalRevenue}
         newThisWeek={newThisWeek}
+        hasNewProjects={hasNewProjects}
         onSettingsClick={() => setShowSettings(true)}
       />
 
@@ -192,6 +235,7 @@ const Index = () => {
               <ProjectCard
                 key={project.id}
                 project={project}
+                isNew={newProjectIds.has(project.id)}
                 onClick={() => setSelectedProject(project)}
               />
             ))}
@@ -204,6 +248,7 @@ const Index = () => {
         onOpenChange={setShowSettings}
         onSave={handleSaveConfig}
         initialConfig={config}
+        autoRefresh={autoRefresh}
       />
 
       <ProjectDetailModal

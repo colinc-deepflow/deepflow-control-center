@@ -2,11 +2,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Project } from "@/lib/googleSheets";
 import { formatCurrency, getRelativeTimeString } from "@/lib/dateUtils";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Sparkles } from "lucide-react";
 
 interface ProjectCardProps {
   project: Project;
   onClick: () => void;
+  isNew?: boolean;
 }
 
 const statusColors = {
@@ -17,12 +18,20 @@ const statusColors = {
   'Live': 'bg-status-live text-white',
 };
 
-export const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
+export const ProjectCard = ({ project, onClick, isNew = false }: ProjectCardProps) => {
   return (
     <Card
-      className="p-6 hover:shadow-lg transition-all cursor-pointer border-border hover:border-primary/50"
+      className={`p-6 hover:shadow-lg transition-all cursor-pointer border-border hover:border-primary/50 relative ${
+        isNew ? 'animate-pulse border-accent/50 shadow-accent/20 shadow-lg' : ''
+      }`}
       onClick={onClick}
     >
+      {isNew && (
+        <div className="absolute -top-2 -right-2 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-bounce">
+          <Sparkles className="w-3 h-3" />
+          NEW
+        </div>
+      )}
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
