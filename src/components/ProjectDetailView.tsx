@@ -554,7 +554,13 @@ export const ProjectDetailView = ({
                         fontSize: '0.875rem',
                       }}
                     >
-                      {JSON.stringify(JSON.parse(project.workflowJson), null, 2)}
+                      {(() => {
+                        try {
+                          return JSON.stringify(JSON.parse(project.workflowJson), null, 2);
+                        } catch (error) {
+                          return project.workflowJson;
+                        }
+                      })()}
                     </SyntaxHighlighter>
                   </CardContent>
                 </Card>
