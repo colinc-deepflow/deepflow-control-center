@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Zap, Settings, Bell } from "lucide-react";
+import { Settings, Bell } from "lucide-react";
 import { formatCurrency } from "@/lib/dateUtils";
+import deepflowLogo from "@/assets/deepflow-logo.png";
 
 interface DashboardHeaderProps {
   totalProjects: number;
@@ -22,12 +23,11 @@ export const DashboardHeader = ({
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              DeepFlow AI
-            </h1>
+            <img 
+              src={deepflowLogo} 
+              alt="DeepFlow AI" 
+              className="h-10 w-auto"
+            />
           </div>
 
           <div className="hidden md:flex items-center gap-8">
