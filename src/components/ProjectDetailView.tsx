@@ -393,43 +393,65 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 2: PROPOSAL */}
-            <TabsContent value="proposal" className="p-6 space-y-4 m-0">
-              <div className="flex gap-3 mb-4">
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={() => project.proposalHtml && handleCopyToClipboard(project.proposalHtml, "Proposal")}
-                  disabled={!project.proposalHtml}
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy Proposal
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => window.location.href = `mailto:${project.clientEmail}`}
-                >
-                  <Mail className="w-4 h-4" />
-                  Email to Client
-                </Button>
-              </div>
-
+            <TabsContent value="proposal" className="p-0 m-0 h-full flex flex-col">
               {project.proposalHtml ? (
-                <Card>
-                  <CardContent className="p-6">
+                <>
+                  {/* Action Bar */}
+                  <div className="flex gap-3 p-4 border-b bg-muted/30">
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => handleCopyToClipboard(project.proposalHtml || '', "Proposal HTML")}
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy HTML
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => {
+                        if (project.proposalHtml) {
+                          const blob = new Blob([project.proposalHtml], { type: 'text/html' });
+                          const url = URL.createObjectURL(blob);
+                          window.open(url, '_blank');
+                        }
+                      }}
+                    >
+                      <FileCode className="w-4 h-4" />
+                      Open in New Tab
+                    </Button>
+                    <Button
+                      className="gap-2"
+                      onClick={() => {
+                        const subject = encodeURIComponent(`Your Proposal - ${project.clientName}`);
+                        window.location.href = `mailto:${project.clientEmail}?subject=${subject}`;
+                      }}
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email to Client
+                    </Button>
+                  </div>
+                  
+                  {/* Proposal Content - Rendered HTML */}
+                  <div className="flex-1 overflow-auto bg-background p-6">
                     <div 
-                      className="prose prose-sm max-w-none dark:prose-invert"
                       dangerouslySetInnerHTML={{ __html: project.proposalHtml }}
+                      className="max-w-full"
                     />
-                  </CardContent>
-                </Card>
+                  </div>
+                  
+                  {/* Info Footer */}
+                  <div className="p-3 border-t bg-muted/30 text-xs text-muted-foreground">
+                    This is the exact proposal that was sent to {project.contactName || project.clientName} ({project.clientEmail})
+                  </div>
+                </>
               ) : (
-                <Card>
-                  <CardContent className="p-12 text-center">
+                <div className="flex-1 flex items-center justify-center p-12">
+                  <div className="text-center">
                     <FileCode className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No proposal available for this project</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
