@@ -188,107 +188,53 @@ export const ProjectDetailView = ({
           <div className="flex-1 overflow-y-auto">
             {/* TAB 1: OVERVIEW */}
             <TabsContent value="overview" className="p-6 space-y-6 m-0">
-              <div className="grid grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Client Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <Mail className="w-4 h-4 text-muted-foreground mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{project.clientEmail}</p>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Business Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-start gap-3">
+                    <Building2 className="w-5 h-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">Client Name</p>
+                      <p className="text-lg font-semibold">{project.clientName}</p>
                     </div>
-                    {project.clientPhone && (
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="font-medium">{project.clientEmail}</p>
+                    </div>
+                  </div>
+
+                  {project.clientPhone && (
+                    <>
+                      <Separator />
                       <div className="flex items-start gap-3">
-                        <Phone className="w-4 h-4 text-muted-foreground mt-1" />
+                        <Phone className="w-5 h-5 text-muted-foreground mt-1" />
                         <div className="flex-1">
                           <p className="text-sm text-muted-foreground">Phone</p>
                           <p className="font-medium">{project.clientPhone}</p>
                         </div>
                       </div>
-                    )}
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-4 h-4 text-muted-foreground mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Created</p>
-                        <p className="font-medium">{getRelativeTimeString(project.timestamp)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </>
+                  )}
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Business Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {project.industry && (
-                      <div className="flex items-start gap-3">
-                        <Building2 className="w-4 h-4 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Industry</p>
-                          <p className="font-medium">{project.industry}</p>
-                        </div>
-                      </div>
-                    )}
-                    {project.teamSize && (
-                      <div className="flex items-start gap-3">
-                        <Users className="w-4 h-4 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Team Size</p>
-                          <p className="font-medium">{project.teamSize}</p>
-                        </div>
-                      </div>
-                    )}
-                    {project.challenges && (
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-4 h-4 text-muted-foreground mt-1" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Challenges</p>
-                          <p className="font-medium text-sm">{project.challenges}</p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  <Separator />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Project Metrics</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <TrendingUp className="w-4 h-4 text-muted-foreground mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Lead Score</p>
-                        <p className="font-medium">{project.leadScore}/100</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <DollarSign className="w-4 h-4 text-muted-foreground mt-1" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Revenue Value</p>
-                        <p className="font-medium">{formatCurrency(project.revenueValue)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Status & Phase</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="status" className="text-sm text-muted-foreground">Status</Label>
+                  <div className="flex items-start gap-3">
+                    <ClipboardList className="w-5 h-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Status</p>
                       <Select
                         value={project.status}
                         onValueChange={(value) => onStatusChange(project.id, value as Project['status'])}
                       >
-                        <SelectTrigger id="status" className="mt-1">
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -300,28 +246,94 @@ export const ProjectDetailView = ({
                         </SelectContent>
                       </Select>
                     </div>
-                    {project.phase && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Phase</p>
-                        <p className="font-medium mt-1">{project.phase}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add notes about this project..."
-                    rows={6}
-                    className="resize-none"
-                  />
+                  <Separator />
+
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="w-5 h-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Lead Score</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-bold">{project.leadScore}/100</span>
+                        </div>
+                        <Progress value={project.leadScore} className="h-2" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-start gap-3">
+                    <DollarSign className="w-5 h-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">Revenue Value</p>
+                      <p className="text-3xl font-bold text-primary">{formatCurrency(project.revenueValue)}</p>
+                    </div>
+                  </div>
+
+                  {project.phase && (
+                    <>
+                      <Separator />
+                      <div className="flex items-start gap-3">
+                        <Calendar className="w-5 h-5 text-muted-foreground mt-1" />
+                        <div className="flex-1">
+                          <p className="text-sm text-muted-foreground">Current Phase</p>
+                          <p className="font-medium">{project.phase}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {(project.industry || project.teamSize || project.challenges) && (
+                    <>
+                      <Separator />
+                      <div className="space-y-4">
+                        {project.industry && (
+                          <div className="flex items-start gap-3">
+                            <Building2 className="w-4 h-4 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                              <p className="text-sm text-muted-foreground">Industry</p>
+                              <p className="text-sm">{project.industry}</p>
+                            </div>
+                          </div>
+                        )}
+                        {project.teamSize && (
+                          <div className="flex items-start gap-3">
+                            <Users className="w-4 h-4 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                              <p className="text-sm text-muted-foreground">Team Size</p>
+                              <p className="text-sm">{project.teamSize}</p>
+                            </div>
+                          </div>
+                        )}
+                        {project.challenges && (
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="w-4 h-4 text-muted-foreground mt-1" />
+                            <div className="flex-1">
+                              <p className="text-sm text-muted-foreground">Challenges</p>
+                              <p className="text-sm">{project.challenges}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  <Separator />
+
+                  <div>
+                    <Label htmlFor="notes" className="text-sm text-muted-foreground mb-2 block">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Add notes about this project..."
+                      rows={4}
+                      className="resize-none"
+                    />
+                  </div>
                 </CardContent>
               </Card>
 

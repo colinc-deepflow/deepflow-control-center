@@ -145,21 +145,148 @@ export const fetchTasks = async (config: GoogleSheetsConfig, projectId: string):
 };
 
 export const createTask = async (config: GoogleSheetsConfig, task: Task): Promise<void> => {
-  console.log('Creating task:', task);
-  // In production, this would append to the Tasks sheet
-  // Using Google Sheets API append method
+  const { apiKey, spreadsheetId } = config;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
+  
+  const row = [
+    task.taskId,
+    task.projectId,
+    task.taskName,
+    task.status,
+    task.dueDate,
+    task.hoursLogged,
+    task.estimatedHours,
+  ];
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: [row],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create task in Google Sheets');
+    }
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
 };
 
 export const updateTask = async (config: GoogleSheetsConfig, task: Task): Promise<void> => {
-  console.log('Updating task:', task);
-  // In production, this would update the specific row
-  // Using Google Sheets API update method
+  const { apiKey, spreadsheetId } = config;
+  
+  // First, find the row number for this task
+  const rangeUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G?key=${apiKey}`;
+  
+  try {
+    const rangeResponse = await fetch(rangeUrl);
+    if (!rangeResponse.ok) {
+      throw new Error('Failed to fetch tasks for update');
+    }
+    
+    const rangeData = await rangeResponse.json();
+    const rows = rangeData.values || [];
+    
+    // Find the row index (skip header row)
+    const rowIndex = rows.findIndex((row: string[], index: number) => 
+      index > 0 && row[0] === task.taskId
+    );
+    
+    if (rowIndex === -1) {
+      throw new Error('Task not found');
+    }
+    
+    // Update the row (rowIndex + 1 because sheets are 1-indexed)
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A${rowIndex + 1}:G${rowIndex + 1}?valueInputOption=USER_ENTERED&key=${apiKey}`;
+    
+    const row = [
+      task.taskId,
+      task.projectId,
+      task.taskName,
+      task.status,
+      task.dueDate,
+      task.hoursLogged,
+      task.estimatedHours,
+    ];
+    
+    const updateResponse = await fetch(updateUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: [row],
+      }),
+    });
+    
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update task in Google Sheets');
+    }
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
 };
 
 export const deleteTask = async (config: GoogleSheetsConfig, taskId: string): Promise<void> => {
-  console.log('Deleting task:', taskId);
-  // In production, this would delete the specific row
-  // Using Google Sheets API batchUpdate method
+  const { apiKey, spreadsheetId } = config;
+  
+  // First, find the row number for this task
+  const rangeUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G?key=${apiKey}`;
+  
+  try {
+    const rangeResponse = await fetch(rangeUrl);
+    if (!rangeResponse.ok) {
+      throw new Error('Failed to fetch tasks for deletion');
+    }
+    
+    const rangeData = await rangeResponse.json();
+    const rows = rangeData.values || [];
+    
+    // Find the row index (skip header row)
+    const rowIndex = rows.findIndex((row: string[], index: number) => 
+      index > 0 && row[0] === taskId
+    );
+    
+    if (rowIndex === -1) {
+      throw new Error('Task not found');
+    }
+    
+    // Delete the row using batchUpdate
+    const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate?key=${apiKey}`;
+    
+    const deleteResponse = await fetch(batchUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId: 0, // Assumes Tasks sheet is the first sheet. May need to adjust.
+              dimension: 'ROWS',
+              startIndex: rowIndex,
+              endIndex: rowIndex + 1,
+            },
+          },
+        }],
+      }),
+    });
+    
+    if (!deleteResponse.ok) {
+      throw new Error('Failed to delete task from Google Sheets');
+    }
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
 };
 
 // Comment Management Functions
@@ -193,8 +320,34 @@ export const fetchComments = async (config: GoogleSheetsConfig, projectId: strin
 };
 
 export const createComment = async (config: GoogleSheetsConfig, comment: Comment): Promise<void> => {
-  console.log('Creating comment:', comment);
-  // In production, this would append to the Comments sheet
+  const { apiKey, spreadsheetId } = config;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Comments!A:D:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
+  
+  const row = [
+    comment.projectId,
+    comment.timestamp,
+    comment.author,
+    comment.commentText,
+  ];
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: [row],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create comment in Google Sheets');
+    }
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    throw error;
+  }
 };
 
 export const DEFAULT_TASKS: Omit<Task, 'taskId' | 'projectId'>[] = [
