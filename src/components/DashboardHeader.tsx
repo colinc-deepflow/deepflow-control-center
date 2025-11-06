@@ -26,7 +26,7 @@ export const DashboardHeader = ({
             <img 
               src={deepflowLogo} 
               alt="DeepFlow AI" 
-              className="h-10 w-auto"
+              className="h-18 w-auto"
             />
           </div>
 
