@@ -27,7 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Project } from "@/lib/googleSheets";
+import { Project, GoogleSheetsConfig } from "@/lib/googleSheets";
 import { formatCurrency, getRelativeTimeString } from "@/lib/dateUtils";
 import { 
   Mail, 
@@ -56,12 +56,14 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { toast } from "@/hooks/use-toast";
+import { BuildProgressTab } from "./BuildProgressTab";
 
 interface ProjectDetailViewProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStatusChange: (projectId: string, newStatus: Project['status']) => void;
+  config: GoogleSheetsConfig;
 }
 
 const statusOptions: Project['status'][] = [
@@ -77,6 +79,7 @@ export const ProjectDetailView = ({
   open,
   onOpenChange,
   onStatusChange,
+  config,
 }: ProjectDetailViewProps) => {
   const [notes, setNotes] = useState(project?.notes || '');
   const [activeTab, setActiveTab] = useState("overview");
@@ -506,100 +509,7 @@ export const ProjectDetailView = ({
 
             {/* TAB 5: BUILD PROGRESS */}
             <TabsContent value="progress" className="p-6 space-y-6 m-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Project Timeline</CardTitle>
-                  <CardDescription>Track major milestones and events</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex gap-4">
-                      <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                      <div className="flex-1">
-                        <p className="font-medium">Project Created</p>
-                        <p className="text-sm text-muted-foreground">{getRelativeTimeString(project.timestamp)}</p>
-                      </div>
-                    </div>
-                    {project.buildProgress?.timeline?.map((event, index) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="w-2 h-2 rounded-full bg-muted mt-2" />
-                        <div className="flex-1">
-                          <p className="font-medium">{event}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tasks</CardTitle>
-                  <CardDescription>Track project tasks and completion</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {project.buildProgress?.tasks && project.buildProgress.tasks.length > 0 ? (
-                      project.buildProgress.tasks.map((task, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <Checkbox checked={task.status === 'done'} />
-                          <span className="flex-1">{task.title}</span>
-                          <Badge variant={
-                            task.status === 'done' ? 'default' : 
-                            task.status === 'in-progress' ? 'secondary' : 
-                            'outline'
-                          }>
-                            {task.status}
-                          </Badge>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-8">No tasks created yet</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hours Logged</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">{project.buildProgress?.hoursLogged || 0}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Total hours worked</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Files Uploaded</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold">{project.buildProgress?.files?.length || 0}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Documents and assets</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Comments & Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {project.buildProgress?.comments && project.buildProgress.comments.length > 0 ? (
-                      project.buildProgress.comments.map((comment, index) => (
-                        <div key={index} className="p-3 bg-muted rounded-lg">
-                          <p className="text-sm">{comment}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-8">No comments yet</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <BuildProgressTab projectId={project.id} config={config} />
             </TabsContent>
           </div>
 

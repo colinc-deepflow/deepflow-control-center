@@ -256,6 +256,7 @@ const Index = () => {
         open={!!selectedProject}
         onOpenChange={(open) => !open && setSelectedProject(null)}
         onStatusChange={handleStatusChange}
+        config={config!}
       />
     </div>
   );
