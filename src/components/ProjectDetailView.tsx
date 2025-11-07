@@ -389,7 +389,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 2: PROPOSAL */}
-            <TabsContent value="proposal" className="p-0 mt-0 h-full flex flex-col">
+            <TabsContent value="proposal" className="p-0 mt-0">
               {project.proposalHtml ? (
                 <>
                   {/* Action Bar */}
@@ -429,7 +429,7 @@ export const ProjectDetailView = ({
                   </div>
                   
                   {/* Proposal Content - Rendered HTML */}
-                  <div className="flex-1 overflow-auto bg-background p-6">
+                  <div className="bg-background p-6">
                     <div 
                       dangerouslySetInnerHTML={{ __html: project.proposalHtml }}
                       className="max-w-full"
@@ -452,7 +452,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 3: BUILD GUIDE */}
-            <TabsContent value="build-guide" className="p-0 mt-0 h-full flex flex-col">
+            <TabsContent value="build-guide" className="p-0 mt-0">
               {project.buildGuideMarkdown ? (
                 <>
                   {/* Action Bar */}
@@ -476,7 +476,7 @@ export const ProjectDetailView = ({
                   </div>
                   
                   {/* Build Guide Content */}
-                  <div className="flex-1 overflow-auto bg-background p-8">
+                  <div className="bg-background p-8">
                     <div className="max-w-4xl mx-auto">
                       <div className="prose prose-sm lg:prose-base max-w-none dark:prose-invert">
                         <ReactMarkdown
@@ -528,7 +528,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 4: WORKFLOW JSON */}
-            <TabsContent value="workflow" className="p-0 mt-0 h-full flex flex-col">
+            <TabsContent value="workflow" className="p-0 mt-0">
               {project.workflowJson ? (
                 <>
                   {/* Metadata Header */}
@@ -590,7 +590,7 @@ export const ProjectDetailView = ({
                   </div>
                   
                   {/* JSON Display */}
-                  <div className="flex-1 overflow-auto bg-[#1e1e1e]">
+                  <div className="bg-[#1e1e1e]">
                     <SyntaxHighlighter
                       language="json"
                       style={vscDarkPlus}
@@ -607,7 +607,6 @@ export const ProjectDetailView = ({
                         padding: '1.5rem',
                         fontSize: '0.8125rem',
                         backgroundColor: 'transparent',
-                        minHeight: '100%',
                       }}
                     >
                       {(() => {
