@@ -184,7 +184,7 @@ export const ProjectDetailView = ({
 
           <div className="flex-1 overflow-y-auto">
             {/* TAB 1: OVERVIEW */}
-            <TabsContent value="overview" className="p-6 space-y-4 m-0">
+            <TabsContent value="overview" className="p-6 space-y-4 mt-0">
               {/* Contact Information Card */}
               <Card>
                 <CardHeader>
@@ -389,7 +389,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 2: PROPOSAL */}
-            <TabsContent value="proposal" className="p-0 m-0 h-full flex flex-col">
+            <TabsContent value="proposal" className="p-0 mt-0 h-full flex flex-col">
               {project.proposalHtml ? (
                 <>
                   {/* Action Bar */}
@@ -452,7 +452,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 3: BUILD GUIDE */}
-            <TabsContent value="build-guide" className="p-0 m-0 h-full flex flex-col">
+            <TabsContent value="build-guide" className="p-0 mt-0 h-full flex flex-col">
               {project.buildGuideMarkdown ? (
                 <>
                   {/* Action Bar */}
@@ -528,7 +528,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 4: WORKFLOW JSON */}
-            <TabsContent value="workflow" className="p-0 m-0 h-full flex flex-col">
+            <TabsContent value="workflow" className="p-0 mt-0 h-full flex flex-col">
               {project.workflowJson ? (
                 <>
                   {/* Metadata Header */}
@@ -644,7 +644,7 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 5: BUILD PROGRESS */}
-            <TabsContent value="progress" className="p-6 space-y-6 m-0">
+            <TabsContent value="progress" className="p-6 space-y-6 mt-0">
               <BuildProgressTab projectId={project.id} config={config} />
             </TabsContent>
           </div>
