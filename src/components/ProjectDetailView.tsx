@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Tabs,
@@ -148,9 +149,9 @@ export const ProjectDetailView = ({
               <DialogTitle className="text-2xl font-bold">
                 {project.clientName}
               </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
                 Projects &gt; {project.clientName} &gt; {activeTab.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </p>
+              </DialogDescription>
             </div>
             <Badge variant="secondary" className="text-sm">
               {project.status}

@@ -119,243 +119,82 @@ export const updateProjectStatus = async (
   console.log(`Updating project ${projectId} to status ${newStatus}`);
 };
 
-// Task Management Functions
+// Task Management Functions (Using Local Storage)
+const TASKS_STORAGE_KEY = 'deepflow_tasks';
+const COMMENTS_STORAGE_KEY = 'deepflow_comments';
+
+const loadTasksFromStorage = (): Task[] => {
+  const stored = localStorage.getItem(TASKS_STORAGE_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+const saveTasksToStorage = (tasks: Task[]) => {
+  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+};
+
 export const fetchTasks = async (config: GoogleSheetsConfig, projectId: string): Promise<Task[]> => {
-  const { apiKey, spreadsheetId } = config;
-  const range = 'Tasks!A:G';
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch tasks from Google Sheets');
-    }
-
-    const data = await response.json();
-    const rows = data.values || [];
-
-    // Skip header row and filter by project ID
-    return rows.slice(1)
-      .filter((row: string[]) => row[1] === projectId)
-      .map((row: string[]) => ({
-        taskId: row[0] || '',
-        projectId: row[1] || '',
-        taskName: row[2] || '',
-        status: (row[3] || 'To Do') as Task['status'],
-        dueDate: row[4] || '',
-        hoursLogged: parseFloat(row[5]) || 0,
-        estimatedHours: parseFloat(row[6]) || 0,
-      }));
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
-    throw error;
-  }
+  // Fetch from local storage instead of Google Sheets
+  const allTasks = loadTasksFromStorage();
+  return allTasks.filter(task => task.projectId === projectId);
 };
 
 export const createTask = async (config: GoogleSheetsConfig, task: Task): Promise<void> => {
-  const { apiKey, spreadsheetId } = config;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
-  
-  const row = [
-    task.taskId,
-    task.projectId,
-    task.taskName,
-    task.status,
-    task.dueDate,
-    task.hoursLogged,
-    task.estimatedHours,
-  ];
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        values: [row],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create task in Google Sheets');
-    }
-  } catch (error) {
-    console.error('Error creating task:', error);
-    throw error;
-  }
+  // Store task in local storage
+  const allTasks = loadTasksFromStorage();
+  allTasks.push(task);
+  saveTasksToStorage(allTasks);
+  console.log('Task created successfully:', task.taskName);
 };
 
 export const updateTask = async (config: GoogleSheetsConfig, task: Task): Promise<void> => {
-  const { apiKey, spreadsheetId } = config;
+  // Update task in local storage
+  const allTasks = loadTasksFromStorage();
+  const taskIndex = allTasks.findIndex(t => t.taskId === task.taskId);
   
-  // First, find the row number for this task
-  const rangeUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G?key=${apiKey}`;
-  
-  try {
-    const rangeResponse = await fetch(rangeUrl);
-    if (!rangeResponse.ok) {
-      throw new Error('Failed to fetch tasks for update');
-    }
-    
-    const rangeData = await rangeResponse.json();
-    const rows = rangeData.values || [];
-    
-    // Find the row index (skip header row)
-    const rowIndex = rows.findIndex((row: string[], index: number) => 
-      index > 0 && row[0] === task.taskId
-    );
-    
-    if (rowIndex === -1) {
-      throw new Error('Task not found');
-    }
-    
-    // Update the row (rowIndex + 1 because sheets are 1-indexed)
-    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A${rowIndex + 1}:G${rowIndex + 1}?valueInputOption=USER_ENTERED&key=${apiKey}`;
-    
-    const row = [
-      task.taskId,
-      task.projectId,
-      task.taskName,
-      task.status,
-      task.dueDate,
-      task.hoursLogged,
-      task.estimatedHours,
-    ];
-    
-    const updateResponse = await fetch(updateUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        values: [row],
-      }),
-    });
-    
-    if (!updateResponse.ok) {
-      throw new Error('Failed to update task in Google Sheets');
-    }
-  } catch (error) {
-    console.error('Error updating task:', error);
-    throw error;
+  if (taskIndex === -1) {
+    throw new Error('Task not found');
   }
+  
+  allTasks[taskIndex] = task;
+  saveTasksToStorage(allTasks);
+  console.log('Task updated successfully:', task.taskName);
 };
 
 export const deleteTask = async (config: GoogleSheetsConfig, taskId: string): Promise<void> => {
-  const { apiKey, spreadsheetId } = config;
+  // Delete task from local storage
+  const allTasks = loadTasksFromStorage();
+  const filteredTasks = allTasks.filter(t => t.taskId !== taskId);
   
-  // First, find the row number for this task
-  const rangeUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Tasks!A:G?key=${apiKey}`;
-  
-  try {
-    const rangeResponse = await fetch(rangeUrl);
-    if (!rangeResponse.ok) {
-      throw new Error('Failed to fetch tasks for deletion');
-    }
-    
-    const rangeData = await rangeResponse.json();
-    const rows = rangeData.values || [];
-    
-    // Find the row index (skip header row)
-    const rowIndex = rows.findIndex((row: string[], index: number) => 
-      index > 0 && row[0] === taskId
-    );
-    
-    if (rowIndex === -1) {
-      throw new Error('Task not found');
-    }
-    
-    // Delete the row using batchUpdate
-    const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate?key=${apiKey}`;
-    
-    const deleteResponse = await fetch(batchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        requests: [{
-          deleteDimension: {
-            range: {
-              sheetId: 0, // Assumes Tasks sheet is the first sheet. May need to adjust.
-              dimension: 'ROWS',
-              startIndex: rowIndex,
-              endIndex: rowIndex + 1,
-            },
-          },
-        }],
-      }),
-    });
-    
-    if (!deleteResponse.ok) {
-      throw new Error('Failed to delete task from Google Sheets');
-    }
-  } catch (error) {
-    console.error('Error deleting task:', error);
-    throw error;
+  if (allTasks.length === filteredTasks.length) {
+    throw new Error('Task not found');
   }
+  
+  saveTasksToStorage(filteredTasks);
+  console.log('Task deleted successfully');
 };
 
-// Comment Management Functions
+// Comment Management Functions (Using Local Storage)
+const loadCommentsFromStorage = (): Comment[] => {
+  const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+  return stored ? JSON.parse(stored) : [];
+};
+
+const saveCommentsToStorage = (comments: Comment[]) => {
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+};
+
 export const fetchComments = async (config: GoogleSheetsConfig, projectId: string): Promise<Comment[]> => {
-  const { apiKey, spreadsheetId } = config;
-  const range = 'Comments!A:D';
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch comments from Google Sheets');
-    }
-
-    const data = await response.json();
-    const rows = data.values || [];
-
-    // Skip header row and filter by project ID
-    return rows.slice(1)
-      .filter((row: string[]) => row[0] === projectId)
-      .map((row: string[]) => ({
-        projectId: row[0] || '',
-        timestamp: row[1] || '',
-        author: row[2] || 'You',
-        commentText: row[3] || '',
-      }));
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    throw error;
-  }
+  // Fetch from local storage instead of Google Sheets
+  const allComments = loadCommentsFromStorage();
+  return allComments.filter(comment => comment.projectId === projectId);
 };
 
 export const createComment = async (config: GoogleSheetsConfig, comment: Comment): Promise<void> => {
-  const { apiKey, spreadsheetId } = config;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Comments!A:D:append?valueInputOption=USER_ENTERED&key=${apiKey}`;
-  
-  const row = [
-    comment.projectId,
-    comment.timestamp,
-    comment.author,
-    comment.commentText,
-  ];
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        values: [row],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create comment in Google Sheets');
-    }
-  } catch (error) {
-    console.error('Error creating comment:', error);
-    throw error;
-  }
+  // Store comment in local storage
+  const allComments = loadCommentsFromStorage();
+  allComments.push(comment);
+  saveCommentsToStorage(allComments);
+  console.log('Comment created successfully');
 };
 
 export const DEFAULT_TASKS: Omit<Task, 'taskId' | 'projectId'>[] = [
