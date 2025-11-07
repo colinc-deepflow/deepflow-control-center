@@ -136,10 +136,6 @@ export const ProjectDetailView = ({
     }
   };
 
-  const buildGuideProgress = project.buildGuideMarkdown 
-    ? Math.floor(Math.random() * 100) // TODO: Calculate actual progress from checkboxes
-    : 0;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
@@ -456,102 +452,162 @@ export const ProjectDetailView = ({
             </TabsContent>
 
             {/* TAB 3: BUILD GUIDE */}
-            <TabsContent value="build-guide" className="p-6 space-y-4 m-0">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 max-w-md">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm font-medium">Completion</span>
-                    <span className="text-sm text-muted-foreground">{buildGuideProgress}%</span>
-                  </div>
-                  <Progress value={buildGuideProgress} className="h-2" />
-                </div>
-                <div className="flex gap-3">
-                  <Button variant="outline" className="gap-2">
-                    <Printer className="w-4 h-4" />
-                    Print Guide
-                  </Button>
-                </div>
-              </div>
-
+            <TabsContent value="build-guide" className="p-0 m-0 h-full flex flex-col">
               {project.buildGuideMarkdown ? (
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          code({ inline, className, children, ...props }: any) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            return !inline && match ? (
-                              <SyntaxHighlighter
-                                style={vscDarkPlus}
-                                language={match[1]}
-                                PreTag="div"
-                                {...props}
-                              >
-                                {String(children).replace(/\n$/, '')}
-                              </SyntaxHighlighter>
-                            ) : (
-                              <code className={className} {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                        }}
-                      >
-                        {project.buildGuideMarkdown}
-                      </ReactMarkdown>
+                <>
+                  {/* Action Bar */}
+                  <div className="flex gap-3 p-4 border-b bg-muted/30">
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => handleCopyToClipboard(project.buildGuideMarkdown || '', "Build Guide")}
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy Text
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => window.print()}
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print Guide
+                    </Button>
+                  </div>
+                  
+                  {/* Build Guide Content */}
+                  <div className="flex-1 overflow-auto bg-background p-8">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="prose prose-sm lg:prose-base max-w-none dark:prose-invert">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ inline, className, children, ...props }: any) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              return !inline && match ? (
+                                <SyntaxHighlighter
+                                  style={vscDarkPlus}
+                                  language={match[1]}
+                                  PreTag="div"
+                                  customStyle={{
+                                    borderRadius: '0.5rem',
+                                    fontSize: '0.875rem',
+                                  }}
+                                  {...props}
+                                >
+                                  {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                              ) : (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                          }}
+                        >
+                          {project.buildGuideMarkdown}
+                        </ReactMarkdown>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  
+                  {/* Info Footer */}
+                  <div className="p-3 border-t bg-muted/30 text-xs text-muted-foreground">
+                    Implementation guide for {project.clientName}'s automation project
+                  </div>
+                </>
               ) : (
-                <Card>
-                  <CardContent className="p-12 text-center">
+                <div className="flex-1 flex items-center justify-center p-12">
+                  <div className="text-center">
                     <FileCode className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No build guide available for this project</p>
-                  </CardContent>
-                </Card>
+                    <p className="text-base text-muted-foreground font-medium mb-2">No build guide available</p>
+                    <p className="text-sm text-muted-foreground">Documentation will appear here once the proposal is generated</p>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
             {/* TAB 4: WORKFLOW JSON */}
-            <TabsContent value="workflow" className="p-6 space-y-4 m-0">
-              <div className="flex gap-3 mb-4">
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={() => project.workflowJson && handleCopyToClipboard(project.workflowJson, "Workflow JSON")}
-                  disabled={!project.workflowJson}
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy JSON
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={handleDownloadJSON}
-                  disabled={!project.workflowJson}
-                >
-                  <Download className="w-4 h-4" />
-                  Download JSON
-                </Button>
-                <Button variant="outline" className="gap-2" disabled={!project.workflowJson}>
-                  <Play className="w-4 h-4" />
-                  Import to n8n
-                </Button>
-              </div>
-
+            <TabsContent value="workflow" className="p-0 m-0 h-full flex flex-col">
               {project.workflowJson ? (
-                <Card>
-                  <CardContent className="p-0">
+                <>
+                  {/* Metadata Header */}
+                  <div className="p-5 bg-muted/30 border-b">
+                    <h3 className="text-lg font-semibold mb-3">
+                      {(() => {
+                        try {
+                          const parsed = JSON.parse(project.workflowJson);
+                          return parsed.name || 'Automation Workflow';
+                        } catch {
+                          return 'Automation Workflow';
+                        }
+                      })()}
+                    </h3>
+                    <div className="flex gap-6 text-sm text-muted-foreground">
+                      <div>
+                        <span className="font-semibold">Nodes:</span>{' '}
+                        {(() => {
+                          try {
+                            const parsed = JSON.parse(project.workflowJson);
+                            return parsed.nodes?.length || 0;
+                          } catch {
+                            return 0;
+                          }
+                        })()}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Connections:</span>{' '}
+                        {(() => {
+                          try {
+                            const parsed = JSON.parse(project.workflowJson);
+                            const connections = parsed.connections || {};
+                            return Object.values(connections).flat().length;
+                          } catch {
+                            return 0;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Bar */}
+                  <div className="flex gap-3 p-4 border-b bg-background">
+                    <Button 
+                      className="gap-2"
+                      onClick={handleDownloadJSON}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download JSON
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => handleCopyToClipboard(project.workflowJson || '', "Workflow JSON")}
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy to Clipboard
+                    </Button>
+                  </div>
+                  
+                  {/* JSON Display */}
+                  <div className="flex-1 overflow-auto bg-[#1e1e1e]">
                     <SyntaxHighlighter
                       language="json"
                       style={vscDarkPlus}
                       showLineNumbers
+                      wrapLines
+                      lineNumberStyle={{
+                        minWidth: '3em',
+                        paddingRight: '1em',
+                        color: '#6b7280',
+                        userSelect: 'none',
+                      }}
                       customStyle={{
                         margin: 0,
-                        borderRadius: '0.5rem',
-                        fontSize: '0.875rem',
+                        padding: '1.5rem',
+                        fontSize: '0.8125rem',
+                        backgroundColor: 'transparent',
+                        minHeight: '100%',
                       }}
                     >
                       {(() => {
@@ -562,15 +618,28 @@ export const ProjectDetailView = ({
                         }
                       })()}
                     </SyntaxHighlighter>
-                  </CardContent>
-                </Card>
+                  </div>
+                  
+                  {/* Instructions Footer */}
+                  <div className="p-4 border-t bg-muted/30">
+                    <p className="text-sm font-semibold mb-2 text-foreground">How to import to n8n:</p>
+                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Download the JSON file using the button above</li>
+                      <li>Open your n8n instance</li>
+                      <li>Click "Add workflow" → "Import from File"</li>
+                      <li>Select the downloaded JSON file</li>
+                      <li>Configure credentials and test the workflow</li>
+                    </ol>
+                  </div>
+                </>
               ) : (
-                <Card>
-                  <CardContent className="p-12 text-center">
+                <div className="flex-1 flex items-center justify-center p-12">
+                  <div className="text-center">
                     <FileJson className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No workflow JSON available for this project</p>
-                  </CardContent>
-                </Card>
+                    <p className="text-base text-muted-foreground font-medium mb-2">No workflow JSON available</p>
+                    <p className="text-sm text-muted-foreground">The workflow will appear here once the proposal is generated</p>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
