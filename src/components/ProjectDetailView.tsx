@@ -182,7 +182,7 @@ export const ProjectDetailView = ({
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             {/* TAB 1: OVERVIEW */}
             <TabsContent value="overview" className="p-6 space-y-4 mt-0">
               {/* Contact Information Card */}
