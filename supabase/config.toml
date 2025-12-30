@@ -40,3 +40,6 @@ verify_jwt = false
 
 [functions.dashboard-builder]
 verify_jwt = false
+
+[functions.mockup-generator]
+verify_jwt = false
