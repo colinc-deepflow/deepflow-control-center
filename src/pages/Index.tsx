@@ -7,7 +7,9 @@ import { FilterButtons } from "@/components/FilterButtons";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectDetailView } from "@/components/ProjectDetailView";
 import { AgentChat } from "@/components/AgentChat";
+import { IdeasHub } from "@/components/IdeasHub";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   loadConfig,
   saveConfig,
@@ -17,7 +19,7 @@ import {
   type GoogleSheetsConfig,
 } from "@/lib/googleSheets";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Bot, X } from "lucide-react";
+import { Loader2, RefreshCw, Bot, X, Lightbulb, LayoutDashboard } from "lucide-react";
 
 const Index = () => {
   const [config, setConfig] = useState<GoogleSheetsConfig | null>(null);
@@ -27,6 +29,7 @@ const Index = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showAgentChat, setShowAgentChat] = useState(false);
+  const [activeMainTab, setActiveMainTab] = useState<'projects' | 'ideas'>('projects');
   const [autoRefresh, setAutoRefresh] = useState(() => {
     const saved = localStorage.getItem('autoRefresh');
     return saved !== null ? JSON.parse(saved) : true;
@@ -193,57 +196,78 @@ const Index = () => {
         onSettingsClick={() => setShowSettings(true)}
       />
 
-      <main className="container mx-auto px-6 py-8 space-y-8">
-        <StatsCards
-          totalProjects={projects.length}
-          totalRevenue={totalRevenue}
-          conversionRate={conversionRate}
-        />
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <FilterButtons
-            selectedFilter={selectedFilter}
-            onFilterChange={setSelectedFilter}
-            projectCounts={projectCounts}
-          />
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => loadProjects()}
-            disabled={loading}
-            className="rounded-full"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <RefreshCw className="w-4 h-4 mr-2" />
-            )}
-            Refresh
-          </Button>
+      <Tabs value={activeMainTab} onValueChange={(v) => setActiveMainTab(v as 'projects' | 'ideas')} className="w-full">
+        <div className="container mx-auto px-6 pt-4">
+          <TabsList className="bg-muted/50">
+            <TabsTrigger value="projects" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Projects
+            </TabsTrigger>
+            <TabsTrigger value="ideas" className="gap-2">
+              <Lightbulb className="w-4 h-4" />
+              Ideas Hub
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground">No projects found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                isNew={newProjectIds.has(project.id)}
-                onClick={() => setSelectedProject(project)}
+        <TabsContent value="projects" className="mt-0">
+          <main className="container mx-auto px-6 py-8 space-y-8">
+            <StatsCards
+              totalProjects={projects.length}
+              totalRevenue={totalRevenue}
+              conversionRate={conversionRate}
+            />
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <FilterButtons
+                selectedFilter={selectedFilter}
+                onFilterChange={setSelectedFilter}
+                projectCounts={projectCounts}
               />
-            ))}
-          </div>
-        )}
-      </main>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadProjects()}
+                disabled={loading}
+                className="rounded-full"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Refresh
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredProjects.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground">No projects found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    isNew={newProjectIds.has(project.id)}
+                    onClick={() => setSelectedProject(project)}
+                  />
+                ))}
+              </div>
+            )}
+          </main>
+        </TabsContent>
+
+        <TabsContent value="ideas" className="mt-0">
+          <IdeasHub />
+        </TabsContent>
+      </Tabs>
 
       <SettingsModal
         open={showSettings}

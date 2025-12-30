@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      advisor_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          idea_id: string | null
+          messages: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_id?: string | null
+          messages?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_id?: string | null
+          messages?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_conversations_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_context: {
         Row: {
           agent_id: string
@@ -124,6 +156,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ideas: {
+        Row: {
+          category: string | null
+          content: string | null
+          created_at: string
+          id: string
+          priority: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {

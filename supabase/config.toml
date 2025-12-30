@@ -43,3 +43,6 @@ verify_jwt = false
 
 [functions.mockup-generator]
 verify_jwt = false
+
+[functions.business-advisor]
+verify_jwt = false
