@@ -51,6 +51,7 @@ import {
   FileJson,
   FileCode,
   ClipboardList,
+  Bot,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -58,6 +59,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { toast } from "@/hooks/use-toast";
 import { BuildProgressTab } from "./BuildProgressTab";
+import { ProjectBossChat } from "./ProjectBossChat";
 
 interface ProjectDetailViewProps {
   project: Project | null;
@@ -123,18 +125,25 @@ export const ProjectDetailView = ({
     if (e.key === 'Escape') {
       onOpenChange(false);
     } else if (e.key === 'ArrowLeft') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex > 0) {
         setActiveTab(tabs[currentIndex - 1]);
       }
     } else if (e.key === 'ArrowRight') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex < tabs.length - 1) {
         setActiveTab(tabs[currentIndex + 1]);
       }
     }
+  };
+
+  const projectContext = {
+    clientName: project.clientName,
+    status: project.status,
+    appDescription: project.notes || '',
+    revenueValue: project.revenueValue,
   };
 
   return (
@@ -180,6 +189,10 @@ export const ProjectDetailView = ({
             <TabsTrigger value="progress" className="gap-2">
               <TrendingUp className="w-4 h-4" />
               Build Progress
+            </TabsTrigger>
+            <TabsTrigger value="boss" className="gap-2">
+              <Bot className="w-4 h-4" />
+              Project Boss
             </TabsTrigger>
           </TabsList>
 
@@ -646,6 +659,13 @@ export const ProjectDetailView = ({
             {/* TAB 5: BUILD PROGRESS */}
             <TabsContent value="progress" className="p-6 space-y-6 mt-0">
               <BuildProgressTab projectId={project.id} config={config} />
+            </TabsContent>
+
+            {/* TAB 6: PROJECT BOSS */}
+            <TabsContent value="boss" className="p-0 mt-0 h-full">
+              <div className="h-[calc(90vh-200px)]">
+                <ProjectBossChat project={projectContext} />
+              </div>
             </TabsContent>
           </div>
 
