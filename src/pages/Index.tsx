@@ -6,6 +6,7 @@ import { StatsCards } from "@/components/StatsCards";
 import { FilterButtons } from "@/components/FilterButtons";
 import { ProjectCard } from "@/components/ProjectCard";
 import { ProjectDetailView } from "@/components/ProjectDetailView";
+import { AgentChat } from "@/components/AgentChat";
 import { Button } from "@/components/ui/button";
 import {
   loadConfig,
@@ -16,7 +17,7 @@ import {
   type GoogleSheetsConfig,
 } from "@/lib/googleSheets";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Bot, X } from "lucide-react";
 
 const Index = () => {
   const [config, setConfig] = useState<GoogleSheetsConfig | null>(null);
@@ -25,6 +26,7 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showAgentChat, setShowAgentChat] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(() => {
     const saved = localStorage.getItem('autoRefresh');
     return saved !== null ? JSON.parse(saved) : true;
@@ -258,6 +260,28 @@ const Index = () => {
         onStatusChange={handleStatusChange}
         config={config!}
       />
+
+      {/* Floating Agent Chat Button */}
+      <Button
+        onClick={() => setShowAgentChat(!showAgentChat)}
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-50 ${
+          showAgentChat ? 'bg-muted hover:bg-muted/80' : 'bg-primary hover:bg-primary/90'
+        }`}
+        size="icon"
+      >
+        {showAgentChat ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <Bot className="w-6 h-6" />
+        )}
+      </Button>
+
+      {/* Agent Chat Panel */}
+      {showAgentChat && (
+        <div className="fixed bottom-24 right-6 w-[420px] max-w-[calc(100vw-3rem)] z-40 animate-in slide-in-from-bottom-4 duration-300">
+          <AgentChat projects={projects} />
+        </div>
+      )}
     </div>
   );
 };
