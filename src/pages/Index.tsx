@@ -22,7 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw, Bot, X, Lightbulb, LayoutDashboard } from "lucide-react";
 
 const Index = () => {
-  const [config, setConfig] = useState<GoogleSheetsConfig | null>(null);
+  // Auto-load the hardcoded config immediately
+  const [config, setConfig] = useState<GoogleSheetsConfig | null>(() => loadConfig());
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -38,11 +39,7 @@ const Index = () => {
   const [hasNewProjects, setHasNewProjects] = useState(false);
   const { toast } = useToast();
 
-  // Load config on mount
-  useEffect(() => {
-    const savedConfig = loadConfig();
-    setConfig(savedConfig);
-  }, []);
+  // Config is already loaded via useState initializer, no need for useEffect
 
   // Fetch projects when config is available
   useEffect(() => {
