@@ -52,6 +52,8 @@ import {
   FileCode,
   ClipboardList,
   Bot,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -60,6 +62,7 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { toast } from "@/hooks/use-toast";
 import { BuildProgressTab } from "./BuildProgressTab";
 import { ProjectBossChat } from "./ProjectBossChat";
+import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
 
 interface ProjectDetailViewProps {
   project: Project | null;
@@ -87,14 +90,20 @@ export const ProjectDetailView = ({
   const [notes, setNotes] = useState(project?.notes || '');
   const [activeTab, setActiveTab] = useState("overview");
   const [expandedChallenges, setExpandedChallenges] = useState(false);
+  const [generatedWorkflow, setGeneratedWorkflow] = useState<string | null>(null);
+  const { generateWorkflow, isGenerating, error: workflowError } = useWorkflowBuilder();
 
   useEffect(() => {
     if (project) {
       setNotes(project.notes || '');
+      setGeneratedWorkflow(null); // Reset when project changes
     }
   }, [project]);
 
   if (!project) return null;
+
+  // Use generated workflow if available, otherwise use project's workflow
+  const currentWorkflowJson = generatedWorkflow || project.workflowJson;
 
   const handleCopyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -105,8 +114,8 @@ export const ProjectDetailView = ({
   };
 
   const handleDownloadJSON = () => {
-    if (!project.workflowJson) return;
-    const blob = new Blob([project.workflowJson], { type: 'application/json' });
+    if (!currentWorkflowJson) return;
+    const blob = new Blob([currentWorkflowJson], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -119,6 +128,34 @@ export const ProjectDetailView = ({
       title: "Downloaded!",
       description: "Workflow JSON saved to your device",
     });
+  };
+
+  const handleGenerateWorkflow = async () => {
+    const workflowContext = {
+      clientName: project.clientName,
+      industry: project.industry,
+      teamSize: project.teamSize,
+      currentChallenges: project.currentChallenges,
+      currentProcess: project.currentProcess,
+      desiredOutcomes: project.desiredOutcomes,
+      notes: project.notes,
+    };
+
+    const result = await generateWorkflow(workflowContext);
+    
+    if (result) {
+      setGeneratedWorkflow(result);
+      toast({
+        title: "Workflow Generated!",
+        description: "Your n8n workflow is ready to download",
+      });
+    } else if (workflowError) {
+      toast({
+        title: "Generation Failed",
+        description: workflowError,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -543,44 +580,54 @@ export const ProjectDetailView = ({
 
             {/* TAB 4: WORKFLOW JSON */}
             <TabsContent value="workflow" className="p-0 mt-0">
-              {project.workflowJson ? (
+              {currentWorkflowJson ? (
                 <>
                   {/* Metadata Header */}
                   <div className="p-5 bg-muted/30 border-b">
-                    <h3 className="text-lg font-semibold mb-3">
-                      {(() => {
-                        try {
-                          const parsed = JSON.parse(project.workflowJson);
-                          return parsed.name || 'Automation Workflow';
-                        } catch {
-                          return 'Automation Workflow';
-                        }
-                      })()}
-                    </h3>
-                    <div className="flex gap-6 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-semibold">Nodes:</span>{' '}
-                        {(() => {
-                          try {
-                            const parsed = JSON.parse(project.workflowJson);
-                            return parsed.nodes?.length || 0;
-                          } catch {
-                            return 0;
-                          }
-                        })()}
+                        <h3 className="text-lg font-semibold mb-3">
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(currentWorkflowJson);
+                              return parsed.name || 'Automation Workflow';
+                            } catch {
+                              return 'Automation Workflow';
+                            }
+                          })()}
+                        </h3>
+                        <div className="flex gap-6 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-semibold">Nodes:</span>{' '}
+                            {(() => {
+                              try {
+                                const parsed = JSON.parse(currentWorkflowJson);
+                                return parsed.nodes?.length || 0;
+                              } catch {
+                                return 0;
+                              }
+                            })()}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Connections:</span>{' '}
+                            {(() => {
+                              try {
+                                const parsed = JSON.parse(currentWorkflowJson);
+                                const connections = parsed.connections || {};
+                                return Object.values(connections).flat().length;
+                              } catch {
+                                return 0;
+                              }
+                            })()}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-semibold">Connections:</span>{' '}
-                        {(() => {
-                          try {
-                            const parsed = JSON.parse(project.workflowJson);
-                            const connections = parsed.connections || {};
-                            return Object.values(connections).flat().length;
-                          } catch {
-                            return 0;
-                          }
-                        })()}
-                      </div>
+                      {generatedWorkflow && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          AI Generated
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -596,10 +643,23 @@ export const ProjectDetailView = ({
                     <Button
                       variant="outline"
                       className="gap-2"
-                      onClick={() => handleCopyToClipboard(project.workflowJson || '', "Workflow JSON")}
+                      onClick={() => handleCopyToClipboard(currentWorkflowJson || '', "Workflow JSON")}
                     >
                       <Copy className="w-4 h-4" />
                       Copy to Clipboard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleGenerateWorkflow}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      {isGenerating ? 'Generating...' : 'Regenerate'}
                     </Button>
                   </div>
                   
@@ -625,9 +685,9 @@ export const ProjectDetailView = ({
                     >
                       {(() => {
                         try {
-                          return JSON.stringify(JSON.parse(project.workflowJson), null, 2);
+                          return JSON.stringify(JSON.parse(currentWorkflowJson), null, 2);
                         } catch (error) {
-                          return project.workflowJson;
+                          return currentWorkflowJson;
                         }
                       })()}
                     </SyntaxHighlighter>
@@ -650,7 +710,24 @@ export const ProjectDetailView = ({
                   <div className="text-center">
                     <FileJson className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-base text-muted-foreground font-medium mb-2">No workflow JSON available</p>
-                    <p className="text-sm text-muted-foreground">The workflow will appear here once the proposal is generated</p>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Generate an n8n workflow based on the client's challenges and needs
+                    </p>
+                    <Button
+                      className="gap-2"
+                      onClick={handleGenerateWorkflow}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      {isGenerating ? 'Generating Workflow...' : 'Generate Workflow'}
+                    </Button>
+                    {workflowError && (
+                      <p className="text-sm text-destructive mt-4">{workflowError}</p>
+                    )}
                   </div>
                 </div>
               )}
