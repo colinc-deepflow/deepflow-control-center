@@ -31,3 +31,6 @@ enable_confirmations = false
 
 [functions.master-orchestrator]
 verify_jwt = false
+
+[functions.project-boss]
+verify_jwt = false

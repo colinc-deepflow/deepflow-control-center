@@ -157,6 +157,41 @@ export type Database = {
           },
         ]
       }
+      project_agents: {
+        Row: {
+          agent_id: string
+          assigned_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          project_id: string
+        }
+        Insert: {
+          agent_id: string
+          assigned_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          project_id: string
+        }
+        Update: {
+          agent_id?: string
+          assigned_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
