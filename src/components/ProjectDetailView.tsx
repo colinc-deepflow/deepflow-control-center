@@ -175,7 +175,6 @@ export const ProjectDetailView = ({
       if (currentIndex < tabs.length - 1) {
         setActiveTab(tabs[currentIndex + 1]);
       }
-      }
     }
   };
 
