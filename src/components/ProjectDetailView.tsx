@@ -55,6 +55,7 @@ import {
   Sparkles,
   Loader2,
   Layout,
+  Eye,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -64,6 +65,7 @@ import { toast } from "@/hooks/use-toast";
 import { BuildProgressTab } from "./BuildProgressTab";
 import { ProjectBossChat } from "./ProjectBossChat";
 import { ClientDashboardTab } from "./ClientDashboardTab";
+import { MockupPreviewTab } from "./MockupPreviewTab";
 import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
 
 interface ProjectDetailViewProps {
@@ -164,13 +166,13 @@ export const ProjectDetailView = ({
     if (e.key === 'Escape') {
       onOpenChange(false);
     } else if (e.key === 'ArrowLeft') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard', 'mockup-preview'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex > 0) {
         setActiveTab(tabs[currentIndex - 1]);
       }
     } else if (e.key === 'ArrowRight') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard', 'mockup-preview'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex < tabs.length - 1) {
         setActiveTab(tabs[currentIndex + 1]);
@@ -236,6 +238,10 @@ export const ProjectDetailView = ({
             <TabsTrigger value="client-dashboard" className="gap-2">
               <Layout className="w-4 h-4" />
               Client Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="mockup-preview" className="gap-2">
+              <Eye className="w-4 h-4" />
+              Mockup Preview
             </TabsTrigger>
           </TabsList>
 
@@ -755,6 +761,13 @@ export const ProjectDetailView = ({
             <TabsContent value="client-dashboard" className="p-0 mt-0 h-full">
               <div className="h-[calc(90vh-200px)]">
                 <ClientDashboardTab project={project} />
+              </div>
+            </TabsContent>
+
+            {/* TAB 8: MOCKUP PREVIEW */}
+            <TabsContent value="mockup-preview" className="p-0 mt-0 h-full">
+              <div className="h-[calc(90vh-200px)]">
+                <MockupPreviewTab project={project} />
               </div>
             </TabsContent>
           </div>
