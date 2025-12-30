@@ -53,13 +53,21 @@ export interface GoogleSheetsConfig {
 
 const STORAGE_KEY = 'deepflow_sheets_config';
 
+// Default configuration - always available
+export const DEFAULT_CONFIG: GoogleSheetsConfig = {
+  apiKey: 'AIzaSyCGYgdLMeMIFnIN_84bcxoyBYuUnHlpW4w',
+  spreadsheetId: '1VeMdknNZTalMZp-gGQ3wkl57JEhL9nNd',
+  sheetName: 'Projects',
+};
+
 export const saveConfig = (config: GoogleSheetsConfig) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
 };
 
 export const loadConfig = (): GoogleSheetsConfig | null => {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
+  // Return saved config or default config
+  return stored ? JSON.parse(stored) : DEFAULT_CONFIG;
 };
 
 export const clearConfig = () => {
