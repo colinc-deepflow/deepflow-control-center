@@ -37,3 +37,6 @@ verify_jwt = false
 
 [functions.workflow-builder]
 verify_jwt = false
+
+[functions.dashboard-builder]
+verify_jwt = false

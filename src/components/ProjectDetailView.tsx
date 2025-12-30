@@ -54,6 +54,7 @@ import {
   Bot,
   Sparkles,
   Loader2,
+  Layout,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -62,6 +63,7 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { toast } from "@/hooks/use-toast";
 import { BuildProgressTab } from "./BuildProgressTab";
 import { ProjectBossChat } from "./ProjectBossChat";
+import { ClientDashboardTab } from "./ClientDashboardTab";
 import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
 
 interface ProjectDetailViewProps {
@@ -162,16 +164,17 @@ export const ProjectDetailView = ({
     if (e.key === 'Escape') {
       onOpenChange(false);
     } else if (e.key === 'ArrowLeft') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex > 0) {
         setActiveTab(tabs[currentIndex - 1]);
       }
     } else if (e.key === 'ArrowRight') {
-      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss'];
+      const tabs = ['overview', 'proposal', 'build-guide', 'workflow', 'progress', 'boss', 'client-dashboard'];
       const currentIndex = tabs.indexOf(activeTab);
       if (currentIndex < tabs.length - 1) {
         setActiveTab(tabs[currentIndex + 1]);
+      }
       }
     }
   };
@@ -230,6 +233,10 @@ export const ProjectDetailView = ({
             <TabsTrigger value="boss" className="gap-2">
               <Bot className="w-4 h-4" />
               Project Boss
+            </TabsTrigger>
+            <TabsTrigger value="client-dashboard" className="gap-2">
+              <Layout className="w-4 h-4" />
+              Client Dashboard
             </TabsTrigger>
           </TabsList>
 
@@ -742,6 +749,13 @@ export const ProjectDetailView = ({
             <TabsContent value="boss" className="p-0 mt-0 h-full">
               <div className="h-[calc(90vh-200px)]">
                 <ProjectBossChat project={projectContext} />
+              </div>
+            </TabsContent>
+
+            {/* TAB 7: CLIENT DASHBOARD */}
+            <TabsContent value="client-dashboard" className="p-0 mt-0 h-full">
+              <div className="h-[calc(90vh-200px)]">
+                <ClientDashboardTab project={project} />
               </div>
             </TabsContent>
           </div>
