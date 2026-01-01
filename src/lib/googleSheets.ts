@@ -60,6 +60,85 @@ export const DEFAULT_CONFIG: GoogleSheetsConfig = {
   sheetName: 'Projects',
 };
 
+// Mock project data for demo/fallback purposes
+export const MOCK_PROJECTS: Project[] = [
+  {
+    id: 'demo-1',
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    clientName: 'Acme Corporation',
+    clientEmail: 'contact@acme.com',
+    status: 'Building',
+    leadScore: 85,
+    revenueValue: 15000,
+    phase: 'Development',
+    notes: 'Building automated invoice processing system',
+    industry: 'Manufacturing',
+    teamSize: '50-100',
+    currentChallenges: 'Manual data entry taking too long',
+    desiredOutcomes: 'Reduce processing time by 80%',
+  },
+  {
+    id: 'demo-2',
+    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    clientName: 'TechStart Inc',
+    clientEmail: 'hello@techstart.io',
+    status: 'New Lead',
+    leadScore: 72,
+    revenueValue: 8500,
+    phase: 'Discovery',
+    notes: 'Interested in CRM automation',
+    industry: 'Technology',
+    teamSize: '10-25',
+    currentChallenges: 'Lead follow-up is inconsistent',
+    desiredOutcomes: 'Automated lead nurturing workflow',
+  },
+  {
+    id: 'demo-3',
+    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    clientName: 'Global Retail Co',
+    clientEmail: 'ops@globalretail.com',
+    status: 'Contacted',
+    leadScore: 90,
+    revenueValue: 25000,
+    phase: 'Proposal',
+    notes: 'Large inventory management project',
+    industry: 'Retail',
+    teamSize: '200+',
+    currentChallenges: 'Inventory sync across 15 locations',
+    desiredOutcomes: 'Real-time inventory tracking',
+  },
+  {
+    id: 'demo-4',
+    timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    clientName: 'HealthFirst Clinic',
+    clientEmail: 'admin@healthfirst.med',
+    status: 'Deployed',
+    leadScore: 95,
+    revenueValue: 12000,
+    phase: 'Testing',
+    notes: 'Appointment scheduling automation complete',
+    industry: 'Healthcare',
+    teamSize: '25-50',
+    currentChallenges: 'Phone scheduling overwhelms staff',
+    desiredOutcomes: 'Online booking with reminders',
+  },
+  {
+    id: 'demo-5',
+    timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    clientName: 'Creative Agency Pro',
+    clientEmail: 'projects@creativeagency.co',
+    status: 'Live',
+    leadScore: 88,
+    revenueValue: 18000,
+    phase: 'Maintenance',
+    notes: 'Project management automation running smoothly',
+    industry: 'Marketing',
+    teamSize: '10-25',
+    currentChallenges: 'Client reporting was manual',
+    desiredOutcomes: 'Automated weekly reports',
+  },
+];
+
 export const saveConfig = (config: GoogleSheetsConfig) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
 };
@@ -82,11 +161,18 @@ export const fetchProjects = async (config: GoogleSheetsConfig): Promise<Project
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('Failed to fetch data from Google Sheets');
+      console.warn('Google Sheets unavailable, using demo data');
+      return MOCK_PROJECTS;
     }
 
     const data = await response.json();
     const rows = data.values || [];
+
+    // If no data rows, return mock data
+    if (rows.length <= 1) {
+      console.warn('No project data found, using demo data');
+      return MOCK_PROJECTS;
+    }
 
     // Skip header row
     return rows.slice(1).map((row: string[], index: number) => ({
@@ -112,8 +198,8 @@ export const fetchProjects = async (config: GoogleSheetsConfig): Promise<Project
       desiredOutcomes: row[19] || '',
     }));
   } catch (error) {
-    console.error('Error fetching projects:', error);
-    throw error;
+    console.warn('Error fetching projects, using demo data:', error);
+    return MOCK_PROJECTS;
   }
 };
 
