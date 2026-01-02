@@ -33,15 +33,34 @@ class Settings(BaseSettings):
         "https://dashboard.deepflowai.com"
     ]
 
-    # AI APIs
+    # AI Configuration
+    LLM_MODE: str = "local"  # "api" or "local"
+
+    # AI APIs (only needed if LLM_MODE="api")
     ANTHROPIC_API_KEY: str = ""
     GOOGLE_AI_API_KEY: str = ""
 
-    # AI Model Selection
+    # API Model Selection (for API mode)
     CLAUDE_OPUS_MODEL: str = "claude-opus-4-5-20251101"
     CLAUDE_SONNET_MODEL: str = "claude-sonnet-4-5-20250929"
     CLAUDE_HAIKU_MODEL: str = "claude-haiku-3-5-20241022"
     GEMINI_FLASH_MODEL: str = "gemini-2.0-flash-exp"
+
+    # Local LLM Configuration (for local mode)
+    LOCAL_LLM_ENDPOINT: str = "http://localhost:11434"  # Ollama default
+    LOCAL_LLM_TYPE: str = "ollama"  # "ollama", "vllm", "llamacpp", or "openai-compatible"
+
+    # Local Model Names (adjust based on your downloaded models)
+    LOCAL_OPUS_MODEL: str = "qwen2.5:72b"  # For complex reasoning (Proposal, Build Guide)
+    LOCAL_SONNET_MODEL: str = "qwen2.5:32b"  # For structured tasks (Workflow, Progress)
+    LOCAL_HAIKU_MODEL: str = "qwen2.5:14b"  # For simple tasks (Overview, Dashboard)
+    LOCAL_FLASH_MODEL: str = "qwen2.5:14b"  # Fast inference
+
+    # Alternative local models (uncomment to use)
+    # LOCAL_OPUS_MODEL: str = "llama-3.1-70b-instruct"
+    # LOCAL_SONNET_MODEL: str = "llama-3.1-8b-instruct"
+    # LOCAL_HAIKU_MODEL: str = "gemma-2-9b-it"
+    # LOCAL_FLASH_MODEL: str = "phi-3-medium"
 
     # Twilio (WhatsApp)
     TWILIO_ACCOUNT_SID: str = ""

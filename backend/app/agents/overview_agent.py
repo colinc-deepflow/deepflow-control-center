@@ -1,25 +1,27 @@
 """
-Overview Agent - Analyzes client submission using Gemini 2.0 Flash.
+Overview Agent - Analyzes client submission using local LLM or Gemini API.
 """
 from typing import Dict, Any
 import json
-import google.generativeai as genai
 
 from app.agents.base import BaseAgent
 from app.models.project import Project
 from app.config import settings
-
-# Configure Gemini
-genai.configure(api_key=settings.GOOGLE_AI_API_KEY)
 
 
 class OverviewAgent(BaseAgent):
     """Overview Agent for initial client analysis."""
 
     def __init__(self):
+        # Select model based on LLM mode
+        if settings.LLM_MODE == "local":
+            model_name = settings.LOCAL_HAIKU_MODEL
+        else:
+            model_name = settings.GEMINI_FLASH_MODEL
+
         super().__init__(
             agent_type="overview",
-            model_name=settings.GEMINI_FLASH_MODEL
+            model_name=model_name
         )
 
     async def process(self, project: Project, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -32,37 +34,46 @@ class OverviewAgent(BaseAgent):
         # Build prompt
         prompt = self._build_prompt(project)
 
-        # Call Gemini API
-        model = genai.GenerativeModel(self.model_name)
+        # Generate using local or API mode
+        if settings.LLM_MODE == "local":
+            result = await self.generate_text(
+                prompt=prompt,
+                model=self.model_name,
+                temperature=0.7,
+                max_tokens=2000
+            )
+            response_text = result["text"]
+            tokens_used = result["tokens_used"]
 
-        generation_config = {
-            "temperature": 0.7,
-            "top_p": 0.95,
-            "max_output_tokens": 2000,
-        }
+        else:
+            # Use Gemini API
+            import google.generativeai as genai
+            genai.configure(api_key=settings.GOOGLE_AI_API_KEY)
 
-        response = model.generate_content(
-            prompt,
-            generation_config=generation_config
-        )
+            model = genai.GenerativeModel(self.model_name)
+            generation_config = {
+                "temperature": 0.7,
+                "top_p": 0.95,
+                "max_output_tokens": 2000,
+            }
+
+            response = model.generate_content(prompt, generation_config=generation_config)
+            response_text = response.text
+            tokens_used = len(prompt) // 4 + len(response_text) // 4
 
         # Parse JSON response
         try:
-            content = json.loads(response.text)
+            content = json.loads(response_text)
         except json.JSONDecodeError:
             # If not valid JSON, try to extract JSON from markdown code block
-            text = response.text
-            if "```json" in text:
-                json_str = text.split("```json")[1].split("```")[0].strip()
+            if "```json" in response_text:
+                json_str = response_text.split("```json")[1].split("```")[0].strip()
                 content = json.loads(json_str)
-            elif "```" in text:
-                json_str = text.split("```")[1].split("```")[0].strip()
+            elif "```" in response_text:
+                json_str = response_text.split("```")[1].split("```")[0].strip()
                 content = json.loads(json_str)
             else:
-                raise ValueError(f"Could not parse JSON from response: {text}")
-
-        # Get token count (approximate)
-        tokens_used = len(prompt) // 4 + len(response.text) // 4
+                raise ValueError(f"Could not parse JSON from response: {response_text}")
 
         return {
             "content": content,

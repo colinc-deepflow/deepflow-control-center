@@ -9,6 +9,7 @@ import logging
 
 from app.models.agent_output import AgentOutput
 from app.models.project import Project
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -130,3 +131,43 @@ class BaseAgent(ABC):
         except KeyError as e:
             logger.error(f"Missing variable in prompt template: {e}")
             raise
+
+    async def generate_text(
+        self,
+        prompt: str,
+        model: str,
+        temperature: float = 0.7,
+        max_tokens: int = 4000
+    ) -> Dict[str, Any]:
+        """
+        Generate text using either API or local LLM based on settings.
+
+        Args:
+            prompt: Input prompt
+            model: Model name (local or API)
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            Dict with 'text' and 'tokens_used' keys
+        """
+        if settings.LLM_MODE == "local":
+            # Use local LLM
+            from app.services.local_llm_service import local_llm
+
+            result = await local_llm.generate(
+                prompt=prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+
+            return {
+                "text": result["text"],
+                "tokens_used": result["usage"].get("total_tokens", 0)
+            }
+
+        else:
+            # Use API mode - agents will handle their own API calls
+            # This method is just for local mode
+            raise ValueError("generate_text should only be called in local mode")

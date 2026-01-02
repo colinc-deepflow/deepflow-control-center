@@ -1,8 +1,8 @@
 """
-Proposal Agent - Generates professional client proposals using Claude Opus.
+Proposal Agent - Generates professional client proposals using local LLM or Claude Opus.
 """
 from typing import Dict, Any
-from anthropic import Anthropic
+import re
 
 from app.agents.base import BaseAgent
 from app.models.project import Project
@@ -13,11 +13,16 @@ class ProposalAgent(BaseAgent):
     """Proposal Agent for generating client-facing proposals."""
 
     def __init__(self):
+        # Select model based on LLM mode
+        if settings.LLM_MODE == "local":
+            model_name = settings.LOCAL_OPUS_MODEL
+        else:
+            model_name = settings.CLAUDE_OPUS_MODEL
+
         super().__init__(
             agent_type="proposal",
-            model_name=settings.CLAUDE_OPUS_MODEL
+            model_name=model_name
         )
-        self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     async def process(self, project: Project, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -34,18 +39,31 @@ class ProposalAgent(BaseAgent):
         # Build prompt
         prompt = self._build_prompt(project, matched_templates, total_value, timeline_weeks)
 
-        # Call Claude Opus API
-        response = self.client.messages.create(
-            model=self.model_name,
-            max_tokens=4000,
-            temperature=0.7,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        # Generate using local or API mode
+        if settings.LLM_MODE == "local":
+            result = await self.generate_text(
+                prompt=prompt,
+                model=self.model_name,
+                temperature=0.7,
+                max_tokens=4000
+            )
+            html_content = result["text"]
+            tokens_used = result["tokens_used"]
 
-        # Extract HTML from response
-        html_content = response.content[0].text
+        else:
+            # Use Claude Opus API
+            from anthropic import Anthropic
+            client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+            response = client.messages.create(
+                model=self.model_name,
+                max_tokens=4000,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            html_content = response.content[0].text
+            tokens_used = response.usage.input_tokens + response.usage.output_tokens
 
         # Generate plain text version (strip HTML tags)
         import re
