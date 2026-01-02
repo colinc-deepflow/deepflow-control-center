@@ -13,16 +13,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   loadConfig,
   saveConfig,
-  fetchProjects,
   updateProjectStatus,
-  type Project,
   type GoogleSheetsConfig,
 } from "@/lib/googleSheets";
+import {
+  fetchProjects as fetchBackendProjects,
+  healthCheck,
+  type Project,
+} from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw, Bot, X, Lightbulb, LayoutDashboard } from "lucide-react";
 
 const Index = () => {
-  // Auto-load the hardcoded config immediately
+  // Auto-load the hardcoded config immediately (for Google Sheets fallback)
   const [config, setConfig] = useState<GoogleSheetsConfig | null>(() => loadConfig());
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,32 +40,47 @@ const Index = () => {
   });
   const [newProjectIds, setNewProjectIds] = useState<Set<string>>(new Set());
   const [hasNewProjects, setHasNewProjects] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(false);
   const { toast } = useToast();
 
-  // Config is already loaded via useState initializer, no need for useEffect
-
-  // Fetch projects when config is available
+  // Check backend connection on mount
   useEffect(() => {
-    if (config) {
+    checkBackendConnection();
+  }, []);
+
+  // Fetch projects when backend is connected or config is available
+  useEffect(() => {
+    if (backendConnected || config) {
       loadProjects();
     }
-  }, [config]);
+  }, [backendConnected, config]);
+
+  const checkBackendConnection = async () => {
+    try {
+      await healthCheck();
+      setBackendConnected(true);
+      console.log('✅ Backend connected successfully');
+    } catch (error) {
+      console.log('⚠️ Backend not available, will use Google Sheets if configured');
+      setBackendConnected(false);
+    }
+  };
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    if (!config || !autoRefresh) return;
+    if ((!backendConnected && !config) || !autoRefresh) return;
     
     const interval = setInterval(() => {
       loadProjects(true);
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [config, autoRefresh]);
+  }, [backendConnected, config, autoRefresh]);
 
   // Clear new project indicators after 10 seconds
   useEffect(() => {
     if (newProjectIds.size === 0) return;
-    
+
     const timeout = setTimeout(() => {
       setNewProjectIds(new Set());
       setHasNewProjects(false);
@@ -72,22 +90,47 @@ const Index = () => {
   }, [newProjectIds]);
 
   const loadProjects = async (silent = false) => {
-    if (!config) return;
-
     if (!silent) setLoading(true);
+
     try {
-      const data = await fetchProjects(config);
-      
+      let data: Project[];
+
+      // Try backend API first if connected
+      if (backendConnected) {
+        try {
+          data = await fetchBackendProjects();
+          console.log('✅ Loaded projects from FastAPI backend');
+        } catch (backendError) {
+          console.error('Backend fetch failed, trying Google Sheets fallback:', backendError);
+
+          // Fallback to Google Sheets if backend fails
+          if (config) {
+            const { fetchProjects: fetchGoogleSheets } = await import('@/lib/googleSheets');
+            data = await fetchGoogleSheets(config);
+            console.log('✅ Loaded projects from Google Sheets fallback');
+          } else {
+            throw new Error('Backend unavailable and no Google Sheets config');
+          }
+        }
+      } else if (config) {
+        // Use Google Sheets if backend is not connected
+        const { fetchProjects: fetchGoogleSheets } = await import('@/lib/googleSheets');
+        data = await fetchGoogleSheets(config);
+        console.log('✅ Loaded projects from Google Sheets');
+      } else {
+        throw new Error('No backend connection and no Google Sheets config');
+      }
+
       // Check for new projects
       if (silent && projects.length > 0) {
         const existingIds = new Set(projects.map(p => p.id));
         const newProjects = data.filter(p => !existingIds.has(p.id));
-        
+
         if (newProjects.length > 0) {
           const newIds = new Set(newProjects.map(p => p.id));
           setNewProjectIds(newIds);
           setHasNewProjects(true);
-          
+
           // Show toast for each new project
           newProjects.forEach(project => {
             toast({
@@ -97,18 +140,19 @@ const Index = () => {
           });
         }
       }
-      
+
       setProjects(data);
       if (!silent) {
         toast({
           title: "Projects loaded",
-          description: `Loaded ${data.length} projects successfully`,
+          description: `Loaded ${data.length} projects ${backendConnected ? 'from backend' : 'from Google Sheets'}`,
         });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Error loading projects",
-        description: "Failed to fetch data from Google Sheets. Please check your configuration.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -168,7 +212,8 @@ const Index = () => {
     deployed: projects.filter(p => p.status === 'Deployed' || p.status === 'Live').length,
   };
 
-  if (!config) {
+  // Only show welcome screen if both backend and Google Sheets are unavailable
+  if (!backendConnected && !config) {
     return (
       <>
         <WelcomeScreen onGetStarted={() => setShowSettings(true)} />

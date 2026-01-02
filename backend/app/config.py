@@ -21,13 +21,14 @@ class Settings(BaseSettings):
 
     # API URLs
     API_BASE_URL: str = "http://localhost:8000"
-    FRONTEND_URL: str = "http://localhost:5173"
-    DASHBOARD_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost:8080"
+    DASHBOARD_URL: str = "http://localhost:8080"
 
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:8080",  # Frontend dev server
         "https://deepflowai.com",
         "https://www.deepflowai.com",
         "https://dashboard.deepflowai.com"
